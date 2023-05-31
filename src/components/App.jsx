@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -8,74 +8,102 @@ import Modal from './Modal/Modal';
 
 const API_KEY = '36213838-e372b0534fd2b886e594c2bd9';
 
-const App = () => {
-  const [query, setQuery] = useState('');
-  const [images, setImages] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+class App extends Component {
+  state = {
+    query: '',
+    images: [],
+    currentPage: 1,
+    isLoading: false,
+    selectedImage: null,
+    status: 'idle',
+  };
 
-  useEffect(() => {
+  componentDidMount() {
+    this.fetchImages();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState.query !== this.state.query ||
+      prevState.currentPage !== this.state.currentPage
+    ) {
+      this.fetchImages();
+    }
+  }
+
+  fetchImages = async () => {
+    const { query, currentPage, status } = this.state;
+
     if (query === '') return;
 
-    const fetchImages = async () => {
-      setIsLoading(true);
+    if (status === 'pending') return;
 
-      try {
-        const response = await axios.get(
-          `https://pixabay.com/api/?q=${query}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
-        );
+    this.setState({ status: 'pending' });
 
-        const newImages = response.data.hits.map(image => ({
-          id: image.id,
-          webformatURL: image.webformatURL,
-          largeImageURL: image.largeImageURL,
-        }));
+    try {
+      const response = await axios.get(
+        `https://pixabay.com/api/?q=${query}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+      );
 
-        setImages(prevImages => [...prevImages, ...newImages]);
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
+      const newImages = response.data.hits.map(image => ({
+        id: image.id,
+        webformatURL: image.webformatURL,
+        largeImageURL: image.largeImageURL,
+      }));
 
-      setIsLoading(false);
-    };
-
-    fetchImages();
-  }, [query, currentPage]);
-
-  const handleSearch = newQuery => {
-    setQuery(newQuery);
-    setImages([]);
-    setCurrentPage(1);
+      this.setState(prevState => ({
+        images: [...prevState.images, ...newImages],
+        status: 'resolved',
+      }));
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      this.setState({ status: 'rejected' });
+    }
   };
 
-  const loadMoreImages = () => {
-    setCurrentPage(prevPage => prevPage + 1);
+  handleSearch = newQuery => {
+    this.setState({
+      query: newQuery,
+      images: [],
+      currentPage: 1,
+    });
   };
 
-  const openModal = image => {
-    setSelectedImage(image);
+  loadMoreImages = () => {
+    this.setState(prevState => ({
+      currentPage: prevState.currentPage + 1,
+    }));
   };
 
-  const closeModal = () => {
-    setSelectedImage(null);
+  openModal = image => {
+    this.setState({ selectedImage: image });
   };
 
-  return (
-    <div>
-      <Searchbar onSubmit={handleSearch} />
-      <ImageGallery images={images} onImageClick={openModal} />
-      {isLoading && <Loader />}
-      {images.length > 0 && !isLoading && <Button onClick={loadMoreImages} />}
-      {selectedImage && (
-        <Modal
-          imageUrl={selectedImage.largeImageURL}
-          onClose={closeModal}
-          isOpen={selectedImage !== null}
-        />
-      )}
-    </div>
-  );
-};
+  closeModal = () => {
+    this.setState({ selectedImage: null });
+  };
+
+  render() {
+    const { images, isLoading, selectedImage, status } = this.state;
+
+    return (
+      <div>
+        <Searchbar onSubmit={this.handleSearch} />
+        <ImageGallery images={images} onImageClick={this.openModal} />
+        {isLoading && <Loader />}
+        {status === 'resolved' && images.length > 0 && (
+          <Button onClick={this.loadMoreImages} />
+        )}
+        {selectedImage && (
+          <Modal
+            imageUrl={selectedImage.largeImageURL}
+            onClose={this.closeModal}
+            isOpen={selectedImage !== null}
+          />
+        )}
+      </div>
+    );
+  }
+}
 
 export default App;
