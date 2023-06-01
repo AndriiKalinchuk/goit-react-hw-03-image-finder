@@ -9,9 +9,15 @@ axios.defaults.params = {
   per_page: 12,
 };
 
-export const getImages = async (query, currentPage) => {
+export const getImages = async (
+  query,
+  currentPage,
+  image_type,
+  orientation,
+  per_page
+) => {
   const { data } = await axios.get(
-    `?q=${query}&page=${currentPage}&key=${API_KEY}`
+    `?q=${query}&page=${currentPage}&key=${API_KEY}&image_type=${image_type}&orientation=${orientation}&per_page=${per_page}`
   );
 
   return data;

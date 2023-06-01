@@ -1,39 +1,37 @@
-// Опис компонента <Modal>
-// Під час кліку на елемент галереї повинно відкриватися модальне вікно з темним оверлеєм і відображатися велика версія зображення. Модальне вікно повинно закриватися по натисканню клавіші ESC або по кліку на оверлеї.
-
-// Зовнішній вигляд схожий на функціонал цього VanillaJS-плагіна, тільки замість білого модального вікна рендериться зображення (у прикладі натисніть Run). Анімацію робити не потрібно!
-
-import React from 'react';
+import { Component } from 'react';
+import { createPortal } from 'react-dom';
 import css from './Modal.module.css';
 
-const Modal = ({ isOpen, onClose, imageUrl }) => {
-  if (!isOpen) {
-    return null;
+const modalRoot = document.querySelector('#modal-root');
+
+export default class Modal extends Component {
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKeyDwn);
   }
 
-  const handleKeyDown = event => {
-    if (event.key === 'Escape') {
-      onClose();
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyDwn);
+  }
+  handleOverlayClick = e => {
+    if (e.target === e.currentTarget) {
+      this.props.modalClose('');
     }
   };
 
-  const handleOverlayClick = event => {
-    if (event.target === event.currentTarget) {
-      onClose();
+  handleKeyDwn = e => {
+    if (e.key === 'Escape') {
+      this.props.modalClose('');
     }
   };
 
-  return (
-    <div
-      className={css.Overlay}
-      onClick={handleOverlayClick}
-      onKeyDown={handleKeyDown}
-    >
-      <div className={css.Modal}>
-        <img src={imageUrl} alt="" />
-      </div>
-    </div>
-  );
-};
-
-export default Modal;
+  render() {
+    return createPortal(
+      <div className={css.Overlay} onClick={this.handleOverlayClick}>
+        <div className={css.Modal}>
+          <img src={this.props.largeImageURL} alt="name" width="100%" />
+        </div>
+      </div>,
+      modalRoot
+    );
+  }
+}

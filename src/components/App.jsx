@@ -9,21 +9,14 @@ import Modal from './Modal/Modal';
 import css from './App.module.css';
 const API_KEY = '36213838-e372b0534fd2b886e594c2bd9';
 
-const STATES = {
-  IDLE: 'idle',
-  LOADING: 'loading',
-  LOADED: 'loaded',
-  ERROR: 'error',
-};
-
 class App extends Component {
   state = {
     query: '',
     images: [],
     currentPage: 1,
     isLoading: false,
-    selectedImage: null,
-    status: STATES.IDLE,
+    showLoadMoreButton: true,
+    largeImageURL: '',
   };
 
   componentDidMount() {
@@ -40,20 +33,21 @@ class App extends Component {
   }
 
   fetchImages = async () => {
-    const { query, currentPage, status } = this.state;
+    const { query, currentPage } = this.state;
 
     if (query === '') return;
 
-    if (status === STATES.LOADING) return;
-
-    this.setState({ status: STATES.LOADING });
+    this.setState({ isLoading: true });
 
     try {
-      const response = await axios.get(
+      const { data } = await axios.get(
         `https://pixabay.com/api/?q=${query}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
       );
+      if (data.totalHits === 0) {
+        throw new Error('No images matching your request were found.');
+      }
 
-      const newImages = response.data.hits.map(image => ({
+      const newImages = data.hits.map(image => ({
         id: image.id,
         webformatURL: image.webformatURL,
         largeImageURL: image.largeImageURL,
@@ -61,20 +55,38 @@ class App extends Component {
 
       this.setState(prevState => ({
         images: [...prevState.images, ...newImages],
-        status: STATES.LOADED,
+        isLoading: false,
       }));
+
+      if (data.totalHits <= currentPage * 12) {
+        this.setState({ showLoadMoreButton: false });
+      }
     } catch (error) {
-      console.error('Error fetching images:', error);
-      this.setState({ status: STATES.ERROR });
+      alert('No images matching your request were found');
+      this.setState({ isLoading: false });
     }
   };
-
   handleSearch = newQuery => {
-    this.setState({
-      query: newQuery,
-      images: [],
-      currentPage: 1,
-    });
+    const { query } = this.state;
+
+    if (query === newQuery) {
+      return alert('Already shown');
+    }
+
+    if (newQuery.trim() === '') {
+      this.setState({
+        query: '',
+        images: [],
+        currentPage: 1,
+        showLoadMoreButton: true,
+      });
+    } else {
+      this.setState({
+        query: newQuery,
+        images: [],
+        currentPage: 1,
+      });
+    }
   };
 
   loadMoreImages = () => {
@@ -83,31 +95,23 @@ class App extends Component {
     }));
   };
 
-  openModal = image => {
-    this.setState({ selectedImage: image });
-  };
-
-  closeModal = () => {
-    this.setState({ selectedImage: null });
+  showModal = largeImageURL => {
+    this.setState({ largeImageURL });
   };
 
   render() {
-    const { images, isLoading, selectedImage, status } = this.state;
+    const { images, isLoading, showLoadMoreButton, largeImageURL } = this.state;
 
     return (
       <div className={css.App}>
         <Searchbar onSubmit={this.handleSearch} />
-        <ImageGallery images={images} onImageClick={this.openModal} />
+        <ImageGallery images={images} showModal={this.showModal} />
         {isLoading && <Loader />}
-        {status === STATES.LOADED && images.length > 0 && (
+        {images.length > 0 && showLoadMoreButton && (
           <Button onClick={this.loadMoreImages} />
         )}
-        {selectedImage && (
-          <Modal
-            imageUrl={selectedImage.largeImageURL}
-            onClose={this.closeModal}
-            isOpen={selectedImage !== null}
-          />
+        {largeImageURL && (
+          <Modal largeImageURL={largeImageURL} modalClose={this.showModal} />
         )}
       </div>
     );

@@ -7,12 +7,8 @@
 import React from 'react';
 import css from './ImageGalleryItem.module.css';
 
-const ImageGalleryItem = ({ image, onImageClick }) => {
+const ImageGalleryItem = ({ image, showModal }) => {
   const { webformatURL, largeImageURL } = image;
-
-  const handleClick = () => {
-    onImageClick(largeImageURL);
-  };
 
   return (
     <li className={css.ImageGalleryItem}>
@@ -20,7 +16,7 @@ const ImageGalleryItem = ({ image, onImageClick }) => {
         className={css.ImageGalleryItemImage}
         src={webformatURL}
         alt=""
-        onClick={handleClick}
+        onClick={() => showModal(largeImageURL)}
       />
     </li>
   );
