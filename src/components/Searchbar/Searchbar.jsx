@@ -44,39 +44,46 @@
 // id - унікальний ідентифікатор
 // webformatURL - посилання на маленьке зображення для списку карток
 // largeImageURL - посилання на велике зображення для модального вікна
-import React, { useState } from 'react';
-
-const Searchbar = ({ onSubmit }) => {
-  const [query, setQuery] = useState('');
-
-  const handleChange = event => {
-    setQuery(event.target.value);
+import React, { Component } from 'react';
+import css from './Searchbar.module.css';
+import { HiMagnifyingGlass } from 'react-icons/hi2';
+class Searchbar extends Component {
+  state = {
+    query: '',
   };
 
-  const handleSubmit = event => {
+  handleChange = event => {
+    this.setState({ query: event.target.value });
+  };
+
+  handleSubmit = event => {
     event.preventDefault();
-    onSubmit(query);
+    this.props.onSubmit(this.state.query);
   };
 
-  return (
-    <header className="searchbar">
-      <form className="form" onSubmit={handleSubmit}>
-        <button type="submit" className="button">
-          <span className="button-label">Search</span>
-        </button>
+  render() {
+    const { query } = this.state;
 
-        <input
-          className="input"
-          type="text"
-          autoComplete="off"
-          autoFocus
-          placeholder="Search images and photos"
-          value={query}
-          onChange={handleChange}
-        />
-      </form>
-    </header>
-  );
-};
+    return (
+      <header className={css.Searchbar}>
+        <form className={css.SearchForm} onSubmit={this.handleSubmit}>
+          <button type="submit" className={css.SearchFormButton}>
+            <HiMagnifyingGlass size="24" />
+          </button>
+
+          <input
+            className={css.SearchFormInput}
+            type="text"
+            autoComplete="off"
+            autoFocus
+            placeholder="What do you want to find?"
+            value={query}
+            onChange={this.handleChange}
+          />
+        </form>
+      </header>
+    );
+  }
+}
 
 export default Searchbar;

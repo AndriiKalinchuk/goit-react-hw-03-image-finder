@@ -4,6 +4,7 @@
 // Зовнішній вигляд схожий на функціонал цього VanillaJS-плагіна, тільки замість білого модального вікна рендериться зображення (у прикладі натисніть Run). Анімацію робити не потрібно!
 
 import React from 'react';
+import css from './Modal.module.css';
 
 const Modal = ({ isOpen, onClose, imageUrl }) => {
   if (!isOpen) {
@@ -24,11 +25,11 @@ const Modal = ({ isOpen, onClose, imageUrl }) => {
 
   return (
     <div
-      className="overlay"
+      className={css.Overlay}
       onClick={handleOverlayClick}
       onKeyDown={handleKeyDown}
     >
-      <div className="modal">
+      <div className={css.Modal}>
         <img src={imageUrl} alt="" />
       </div>
     </div>

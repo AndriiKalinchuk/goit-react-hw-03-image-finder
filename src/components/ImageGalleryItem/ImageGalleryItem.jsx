@@ -5,6 +5,7 @@
 //   <img src="" alt="" />
 // </li>
 import React from 'react';
+import css from './ImageGalleryItem.module.css';
 
 const ImageGalleryItem = ({ image, onImageClick }) => {
   const { webformatURL, largeImageURL } = image;
@@ -14,8 +15,13 @@ const ImageGalleryItem = ({ image, onImageClick }) => {
   };
 
   return (
-    <li className="gallery-item">
-      <img src={webformatURL} alt="" onClick={handleClick} />
+    <li className={css.ImageGalleryItem}>
+      <img
+        className={css.ImageGalleryItemImage}
+        src={webformatURL}
+        alt=""
+        onClick={handleClick}
+      />
     </li>
   );
 };

@@ -6,7 +6,15 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 
+import css from './App.module.css';
 const API_KEY = '36213838-e372b0534fd2b886e594c2bd9';
+
+const STATES = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  LOADED: 'loaded',
+  ERROR: 'error',
+};
 
 class App extends Component {
   state = {
@@ -15,7 +23,7 @@ class App extends Component {
     currentPage: 1,
     isLoading: false,
     selectedImage: null,
-    status: 'idle',
+    status: STATES.IDLE,
   };
 
   componentDidMount() {
@@ -36,9 +44,9 @@ class App extends Component {
 
     if (query === '') return;
 
-    if (status === 'pending') return;
+    if (status === STATES.LOADING) return;
 
-    this.setState({ status: 'pending' });
+    this.setState({ status: STATES.LOADING });
 
     try {
       const response = await axios.get(
@@ -53,11 +61,11 @@ class App extends Component {
 
       this.setState(prevState => ({
         images: [...prevState.images, ...newImages],
-        status: 'resolved',
+        status: STATES.LOADED,
       }));
     } catch (error) {
       console.error('Error fetching images:', error);
-      this.setState({ status: 'rejected' });
+      this.setState({ status: STATES.ERROR });
     }
   };
 
@@ -87,11 +95,11 @@ class App extends Component {
     const { images, isLoading, selectedImage, status } = this.state;
 
     return (
-      <div>
+      <div className={css.App}>
         <Searchbar onSubmit={this.handleSearch} />
         <ImageGallery images={images} onImageClick={this.openModal} />
         {isLoading && <Loader />}
-        {status === 'resolved' && images.length > 0 && (
+        {status === STATES.LOADED && images.length > 0 && (
           <Button onClick={this.loadMoreImages} />
         )}
         {selectedImage && (
