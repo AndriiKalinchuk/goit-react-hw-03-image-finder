@@ -7,6 +7,7 @@
 import React from 'react';
 import ImageGalleryItem from 'components/ImageGalleryItem/ImageGalleryItem';
 import css from './ImageGallery.module.css';
+import PropTypes from 'prop-types';
 
 const ImageGallery = ({ images, showModal }) => {
   return (
@@ -16,6 +17,11 @@ const ImageGallery = ({ images, showModal }) => {
       ))}
     </ul>
   );
+};
+
+ImageGallery.propTypes = {
+  images: PropTypes.shape.isRequired,
+  showModal: PropTypes.func.isRequired,
 };
 
 export default ImageGallery;
