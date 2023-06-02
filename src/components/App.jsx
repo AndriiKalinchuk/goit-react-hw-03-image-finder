@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
+import * as ImageService from '../service/image_service';
 
 import css from './App.module.css';
-const API_KEY = '36213838-e372b0534fd2b886e594c2bd9';
 
 class App extends Component {
   state = {
@@ -34,15 +33,9 @@ class App extends Component {
     this.setState({ isLoading: true });
 
     try {
-      const { data } = await axios.get(
-        `https://pixabay.com/api/?q=${query}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
-      );
+      const data = await ImageService.getImages(query, currentPage);
       if (data.totalHits === 0) {
         throw new Error('No images matching your request were found.');
-      }
-
-      if (data.totalHits >= currentPage * 12) {
-        this.setState({ showLoadMoreButton: true });
       }
 
       const newImages = data.hits.map(image => ({
@@ -53,10 +46,11 @@ class App extends Component {
 
       this.setState(prevState => ({
         images: [...prevState.images, ...newImages],
-        isLoading: false,
+        showLoadMoreButton: currentPage < Math.ceil(data.totalHits / 12),
       }));
     } catch (error) {
       alert('No images matching your request were found');
+    } finally {
       this.setState({ isLoading: false });
     }
   };

@@ -14,7 +14,6 @@ const ImageGallery = ({ images, showModal }) => {
 };
 
 ImageGallery.propTypes = {
-  images: PropTypes.shape.isRequired,
   showModal: PropTypes.func.isRequired,
 };
 
