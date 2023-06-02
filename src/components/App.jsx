@@ -15,13 +15,9 @@ class App extends Component {
     images: [],
     currentPage: 1,
     isLoading: false,
-    showLoadMoreButton: true,
+    showLoadMoreButton: false,
     largeImageURL: '',
   };
-
-  componentDidMount() {
-    this.fetchImages();
-  }
 
   componentDidUpdate(prevProps, prevState) {
     if (
@@ -35,8 +31,6 @@ class App extends Component {
   fetchImages = async () => {
     const { query, currentPage } = this.state;
 
-    if (query === '') return;
-
     this.setState({ isLoading: true });
 
     try {
@@ -45,6 +39,10 @@ class App extends Component {
       );
       if (data.totalHits === 0) {
         throw new Error('No images matching your request were found.');
+      }
+
+      if (data.totalHits >= currentPage * 12) {
+        this.setState({ showLoadMoreButton: true });
       }
 
       const newImages = data.hits.map(image => ({
@@ -57,34 +55,25 @@ class App extends Component {
         images: [...prevState.images, ...newImages],
         isLoading: false,
       }));
-
-      if (data.totalHits <= currentPage * 12) {
-        this.setState({ showLoadMoreButton: false });
-      }
     } catch (error) {
       alert('No images matching your request were found');
       this.setState({ isLoading: false });
     }
   };
+
   handleSearch = newQuery => {
     const { query } = this.state;
 
     if (query === newQuery) {
       return alert('Already shown');
-    }
-
-    if (newQuery.trim() === '') {
-      this.setState({
-        query: '',
-        images: [],
-        currentPage: 1,
-        showLoadMoreButton: true,
-      });
     } else {
       this.setState({
         query: newQuery,
         images: [],
         currentPage: 1,
+        isLoading: false,
+        showLoadMoreButton: false,
+        largeImageURL: '',
       });
     }
   };
@@ -107,9 +96,7 @@ class App extends Component {
         <Searchbar onSubmit={this.handleSearch} />
         <ImageGallery images={images} showModal={this.showModal} />
         {isLoading && <Loader />}
-        {images.length > 0 && showLoadMoreButton && (
-          <Button onClick={this.loadMoreImages} />
-        )}
+        {showLoadMoreButton && <Button onClick={this.loadMoreImages} />}
         {largeImageURL && (
           <Modal largeImageURL={largeImageURL} modalClose={this.showModal} />
         )}
